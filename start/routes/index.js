@@ -15,10 +15,7 @@
 
 /** @type {typeof import('@adonisjs/framework/src/Route/Manager')} */
 const Route = use('Route')
+const fs = require('fs')
+const path = require('path')
 
-Route.get('/', () => {
-  return { greeting: 'Hello world in JSON' }
-})
-
-require('./auth')
-require('./admin')
+fs.readdirSync(__dirname).forEach(file => require(path.join(__dirname, file)))
