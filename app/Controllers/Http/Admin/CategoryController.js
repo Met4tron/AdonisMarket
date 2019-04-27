@@ -7,6 +7,7 @@
 /**
  * Resourceful controller for interacting with categories
  */
+const Category = use('App/Models/Category')
 class CategoryController {
   /**
    * Show a list of all categories.
@@ -15,9 +16,19 @@ class CategoryController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
+   * @param {object} ctx.pagination
    */
-  async index({ request, response, view }) {}
+  async index({ request, response, pagination }) {
+    const title = request.input('title')
+    const query = Category.query()
+
+    if (title) {
+      query.where('title', 'ILIKE', `%${title}%`)
+    }
+
+    const categories = await query.paginate(pagination.page, pagination.limit)
+    return response.send(categories)
+  }
 
   /**
    * Create/save a new category.
@@ -27,7 +38,23 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store({ request, response }) {}
+  async store({ request, response }) {
+    try {
+      const { title, description, image_id } = request.only([
+        'title',
+        'description',
+        'image_id'
+      ])
+
+      const category = await Category.create({ title, description, image_id })
+
+      return response.status(201).send({ data: category })
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ message: 'Error to create a new category' })
+    }
+  }
 
   /**
    * Display a single category.
@@ -36,9 +63,17 @@ class CategoryController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
    */
-  async show({ params, request, response, view }) {}
+  async show({ params: { id }, request, response }) {
+    try {
+      const category = await Category.findOrFail(id)
+      return response.status(200).send({ data: category })
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ message: 'Error to show a selected category' })
+    }
+  }
 
   /**
    * Update category details.
@@ -48,7 +83,24 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update({ params, request, response }) {}
+  async update({ params: { id }, request, response }) {
+    try {
+      const category = await Category.findOrFail(id)
+      const { title, description, image_id } = request.only([
+        'title',
+        'description',
+        'image_id'
+      ])
+
+      category.merge({ title, description, image_id })
+      await category.save()
+      return response.send(category)
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ message: 'Error to update a selected category' })
+    }
+  }
 
   /**
    * Delete a category with id.
@@ -58,7 +110,18 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy({ params, request, response }) {}
+  async destroy({ params: { id }, request, response }) {
+    try {
+      const category = await Category.findOrFail(id)
+      await category.delete()
+
+      return response.status(204).send({})
+    } catch (error) {
+      return response
+        .status(400)
+        .send({ message: 'Error to delete a selected category' })
+    }
+  }
 }
 
 module.exports = CategoryController
