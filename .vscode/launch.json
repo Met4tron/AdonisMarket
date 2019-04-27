@@ -10,8 +10,7 @@
       "name": "Debug",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 9229,
-      "internalConsoleOptions": "neverOpen"
+      "port": 9229
     }
   ]
 }
